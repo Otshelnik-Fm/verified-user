@@ -1,0 +1,7 @@
+Name: Verified User;
+Version: 1.0;
+Support Core: 16.17.0;
+Description: Рядом с именем показывает значок что это подтвержденный профиль;
+Author: Владимир Дружаев (Otshelnik-Fm);
+Author URI: https://otshelnik-fm.ru/?utm_source=free-addons&utm_medium=addon-manager&utm_campaign=verified-user&utm_content=not-domain&utm_term=home-page;
+Add-on URI: https://codeseller.ru/products/verified-user/;
