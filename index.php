@@ -97,6 +97,16 @@ function vrfd_add_form( $fields ) {
     return $opt;
 }
 
+// запрет удалением реколл данных если вырезали их во фронте
+add_filter( 'rcl_pre_update_profile_field', 'vrfd_skip_delete_field_in_core' );
+function vrfd_skip_delete_field_in_core( $field ) {
+    if ( is_admin() )
+        return $field;
+
+    if ( $field === 'vrfd_profile' )
+        return false;
+}
+
 // выведем после имени
 add_action( 'wp_footer', 'vrfd_after_title', 5 );
 function vrfd_after_title() {
@@ -117,12 +127,26 @@ function vrfd_after_title() {
     $blk .= '</sup>';
 
     // Поместим блок после имени
-    // удалим из фронтенда в вкладке "профиль" настройку персонального рейтинга #profile-field-vrfd_profile
     $out = "<script>
 jQuery(document).ready(function(){
 jQuery('$div').append('$blk');
-jQuery('#rcl-office #profile-field-vrfd_profile').remove();
 });
+</script>";
+    echo $out;
+}
+
+// отдельно вырежем данные в фронте
+add_action( 'wp_footer', 'vrfd_hide_data', 5 );
+function vrfd_hide_data() {
+    global $user_ID;
+
+    if ( ! rcl_is_office( $user_ID ) )
+        return false;
+
+    $out = "<script>
+rcl_add_action('rcl_footer','vrfd_hide');
+rcl_add_action('rcl_upload_tab','vrfd_hide');
+function vrfd_hide(){jQuery('#rcl-office #profile-field-vrfd_profile').remove();}
 </script>";
     echo $out;
 }
