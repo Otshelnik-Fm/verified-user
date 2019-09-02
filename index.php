@@ -103,8 +103,11 @@ function vrfd_skip_delete_field_in_core( $field ) {
     if ( is_admin() )
         return $field;
 
-    if ( $field === 'vrfd_profile' )
+    if ( $field['slug'] === 'vrfd_profile' ) {
         return false;
+    }
+
+    return $field;
 }
 
 // выведем после имени
