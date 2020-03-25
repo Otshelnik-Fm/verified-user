@@ -116,6 +116,10 @@ function vrfd_after_title() {
     if ( ! rcl_is_office() )
         return false;
 
+    // у этого допа есть хук
+    if ( rcl_exist_addon( 'theme-control' ) )
+        return;
+
     global $user_LK;
 
     $is_verified = get_user_meta( $user_LK, 'vrfd_profile', true );
@@ -123,11 +127,9 @@ function vrfd_after_title() {
     if ( ! $is_verified || $is_verified === 'Не подтверждён' )
         return;
 
-    $div = '.tcl_name_left,.office-title > h2,.cab_ln_title > h2,.office-content-top > h2,.ao_name_author_lk > h2,.cab_lt_title > h2, .cab_title > h2';
+    $div = '.office-title > h2,.cab_ln_title > h2,.office-content-top > h2,.ao_name_author_lk > h2,.cab_lt_title > h2, .cab_title > h2';
 
-    $blk = '<sup title="Это подтверждённый профиль" class="vrfd_block" style="align-self:center;margin:0 6px;text-shadow:none;">';
-    $blk .= '<i class="rcli fa-check-circle-o" style="font-size:20px;color:#71f25e;display:inline-block !important;line-height:1;vertical-align:middle;text-shadow:none;"></i>';
-    $blk .= '</sup>';
+    $blk = vrfd_get_icon();
 
     // Поместим блок после имени
     $out = "<script>
@@ -136,6 +138,27 @@ jQuery('$div').append('$blk');
 });
 </script>";
     echo $out;
+}
+
+// у Theme Control есть хук у имени - выведем там
+add_filter( 'tcl_name', 'vrfd_after_title_theme_control', 20 );
+function vrfd_after_title_theme_control( $data ) {
+    global $user_LK;
+
+    $is_verified = get_user_meta( $user_LK, 'vrfd_profile', true );
+
+    if ( ! $is_verified || $is_verified === 'Не подтверждён' )
+        return $data;
+
+    return $data . vrfd_get_icon();
+}
+
+function vrfd_get_icon() {
+    $blk = '<sup title="Это подтверждённый профиль" class="vrfd_block" style="align-self:center;margin:0 6px;text-shadow:none;">';
+    $blk .= '<i class="rcli fa-check-circle-o" style="font-size:20px;color:#63bd56;display:inline-block !important;line-height:1;vertical-align:middle;text-shadow:none;"></i>';
+    $blk .= '</sup>';
+
+    return $blk;
 }
 
 // отдельно вырежем данные в фронте
