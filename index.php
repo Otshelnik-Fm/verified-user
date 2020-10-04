@@ -24,71 +24,77 @@ function vrfd_admin_profile_field( $fields ) {
 }
 
 // и немного обрежем там что не надо
-add_filter( 'rcl_custom_field_options', 'vrfd_exclude_variations', 10, 3 );
-function vrfd_exclude_variations( $options, $field, $post_type ) {
+add_filter( 'rcl_field_options', 'vrfd_exclude_variations', 20, 3 );
+function vrfd_exclude_variations( $options, $field, $manager_id ) {
     // это не страница "поля профиля"
-    if ( $post_type !== 'profile' )
+    if ( $manager_id !== 'profile' )
         return $options;
 
     // это не наше поле
-    if ( isset( $field['slug'] ) && ( $field['slug'] !== 'vrfd_profile' ) )
+    if ( isset( $field->slug ) && ( $field->slug !== 'vrfd_profile' ) )
         return $options;
 
-    // что нам не нужно - удалим
-    foreach ( $options as $option ) {
-        // первое значение
-        if ( $option['slug'] == 'empty-first' )
-            continue;
-
-        // подпись к полю
-        if ( $option['slug'] == 'notice' )
-            continue;
-
-        // добавляемые значения
-        if ( $option['slug'] == 'values' )
-            continue;
-
-        // отображать для других пользователей
-        if ( $option['slug'] == 'req' )
-            continue;
-
-        // редактируется администрацией
-        if ( $option['slug'] == 'admin' ) {
-            $option['values'] = array( 'Да' );
+    // оставим "редактируется только администрацией сайта"
+    foreach ( $options as $k => $option ) {
+        if ( $option['slug'] != 'admin' ) {
+            unset( $options[$k] );
         }
-
-        // отображать в заказе
-        if ( $option['slug'] == 'order' )
-            continue;
-
-        // обязательное поле
-        if ( $option['slug'] == 'required' )
-            continue;
-
-        // Макс. кол-во знаков
-        if ( $option['slug'] == 'maxlength' )
-            continue;
-
-        // отображать в форме регистрации
-        if ( $option['slug'] == 'register' )
-            continue;
-
-        // Фильтровать пользователей по значению этого поля
-        if ( $option['slug'] == 'filter' )
-            continue;
-
-        $opt[] = $option;
     }
 
-    return $opt;
+    $options['admin']['values'] = array( 'Да' );
+
+    return $options;
+}
+
+/**
+ * Это верифицированный пользователь?
+ *
+ * @since 1.3
+ *
+ * @param int $user_id  id проверяемого.
+ *
+ * @return bool         'true' - верифицирован.
+ *                      'false' - не верифицирован.
+ */
+function vrfd_is_verified( $user_id ) {
+    if ( ! $user_id )
+        return false;
+
+    $is_verified = get_user_meta( $user_id, 'vrfd_profile', true );
+
+    if ( ! $is_verified ) {
+        return false;
+    }
+
+    if ( $is_verified === 'Это подтверждённый профиль' ) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 // добавим в профиль
-add_filter( 'rcl_profile_fields', 'vrfd_add_form', 10 );
-function vrfd_add_form( $fields ) {
+add_filter( 'rcl_profile_fields', 'vrfd_add_form', 10, 2 );
+function vrfd_add_form( $fields, $args ) {
+    $very = [ 'Не подтверждён', 'Это подтверждённый профиль' ];
+    $type = 'select';
+
+    // чтоб сам юзер не менял себе значение
+    if ( ! current_user_can( 'manage_options' ) ) {
+        $very = ( ! vrfd_is_verified( $args['user_id'] ) ) ? 'Не подтверждён' : 'Это подтверждённый профиль';
+
+        $type = 'hidden';
+    }
+
     foreach ( $fields as $field ) {
         if ( $field['slug'] === 'vrfd_profile' ) {
-            $field['values'] = [ 'Не подтверждён', 'Это подтверждённый профиль' ];
+            $field['type'] = $type;
+
+            if ( $type == 'select' ) {
+                $field['values'] = $very;
+            } else if ( $type == 'hidden' ) {
+                $field['value'] = $very;
+            }
         }
 
         $opt[] = $field;
@@ -114,7 +120,7 @@ function vrfd_skip_delete_field_in_core( $field ) {
 add_action( 'wp_footer', 'vrfd_after_title', 5 );
 function vrfd_after_title() {
     if ( ! rcl_is_office() )
-        return false;
+        return;
 
     // у этого допа есть хук
     if ( rcl_exist_addon( 'theme-control' ) )
@@ -122,9 +128,7 @@ function vrfd_after_title() {
 
     global $user_LK;
 
-    $is_verified = get_user_meta( $user_LK, 'vrfd_profile', true );
-
-    if ( ! $is_verified || $is_verified === 'Не подтверждён' )
+    if ( ! vrfd_is_verified( $user_LK ) )
         return;
 
     $div = '.office-title > h2,.cab_ln_title > h2,.office-content-top > h2,.ao_name_author_lk > h2,.cab_lt_title > h2, .cab_title > h2';
@@ -132,12 +136,7 @@ function vrfd_after_title() {
     $blk = vrfd_get_icon();
 
     // Поместим блок после имени
-    $out = "<script>
-jQuery(document).ready(function(){
-jQuery('$div').append('$blk');
-});
-</script>";
-    echo $out;
+    echo "<script>jQuery(document).ready(function(){jQuery('$div').append('$blk');});</script>";
 }
 
 // у Theme Control есть хук у имени - выведем там
@@ -145,16 +144,14 @@ add_filter( 'tcl_name', 'vrfd_after_title_theme_control', 20 );
 function vrfd_after_title_theme_control( $data ) {
     global $user_LK;
 
-    $is_verified = get_user_meta( $user_LK, 'vrfd_profile', true );
-
-    if ( ! $is_verified || $is_verified === 'Не подтверждён' )
+    if ( ! vrfd_is_verified( $user_LK ) )
         return $data;
 
     return $data . vrfd_get_icon();
 }
 
 function vrfd_get_icon() {
-    $blk = '<sup title="Это подтверждённый профиль" class="vrfd_block" style="align-self:center;margin:0 6px;text-shadow:none;">';
+    $blk = '<sup title="Профиль подтверждён" class="vrfd_block" style="align-self:center;margin:0 6px;text-shadow:none;">';
     $blk .= '<i class="rcli fa-check-circle-o" style="font-size:20px;color:#63bd56;display:inline-block !important;line-height:1;vertical-align:middle;text-shadow:none;"></i>';
     $blk .= '</sup>';
 
@@ -167,7 +164,7 @@ function vrfd_hide_data() {
     global $user_ID;
 
     if ( ! rcl_is_office( $user_ID ) )
-        return false;
+        return;
 
     $out = "<script>
 rcl_add_action('rcl_footer','vrfd_hide');
@@ -180,13 +177,12 @@ function vrfd_hide(){jQuery('#rcl-office #profile-field-vrfd_profile').remove();
 // стили
 add_filter( 'rcl_inline_styles', 'vrfd_inline_styles', 10 );
 function vrfd_inline_styles( $styles ) {
-    if ( ! rcl_is_office() )
+    global $user_ID;
+
+    if ( ! rcl_is_office( $user_ID ) )
         return $styles;
 
-    $styles .= '
-#rcl-office #profile-field-vrfd_profile {
-    display: none;
-}
-';
+    $styles .= '#rcl-office #profile-field-vrfd_profile{display:none;}';
+
     return $styles;
 }
