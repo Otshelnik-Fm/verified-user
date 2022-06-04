@@ -19,13 +19,14 @@
 == Настройки ==
 В админке переходим: "WP-Recall" -> "Поля профиля" и из неактивной зоны перетаскиваем в нужное место блок "Подтверждение профиля"
 Сохраняем.
-
+<a href="https://codeseller.ru/wp-content/uploads/2019/07/Verified-User3.png" class="mpr_image">Скрин</a>
 
 
 == FAQ ==
-<h3 style="color:#26901b;font-weight:bold;">Как назначить иконку верифицированого пользователя?</h3>
+<h3 style="color:#26901b;font-weight:bold;">Как назначить иконку верифицированного пользователя?</h3>
 В админке заходите в "Пользователи", находите нужного юзера для выдачи ему иконки подтвержденного пользователя - переходите в редактирование его профиля.
 Находите там "Подтверждение профиля" и выставляете "Это подтверждённый профиль" сохраняете.
+<a href="https://codeseller.ru/wp-content/uploads/2019/07/Verified-User4.png" class="mpr_image">Скрин</a>
 
 <hr style="border:1px solid #ddd;margin:18px;">
 
@@ -53,6 +54,12 @@
 
 
 == Changelog ==
+= 2022-06-04 =
+v1.4.0
+* поддержка WP-Recall 16.26.0
+* поддержка нового ЛК из WP-Recall WebX
+
+
 = 2020-10-04 =
 v1.3.0
 * поддержка WP-Recall 16.24.11
@@ -88,7 +95,7 @@ v1.0
 == Прочее ==
 
 * Поддержка осуществляется в рамках текущего функционала дополнения
-* При возникновении проблемы, создайте соотвествующую тему на форуме поддержки товара
+* При возникновении проблемы, создайте соответствующую тему на форуме поддержки товара
 * Если вам нужна доработка под ваши нужды - вы можете обратиться ко мне в <a href="https://codeseller.ru/author/otshelnik-fm/?tab=chat" target="_blank">ЛС</a> с техзаданием на платную доработку.
 
 Все мои работы опубликованы <a href="https://otshelnik-fm.ru/?p=2562&utm_source=free-addons&utm_medium=addon-description&utm_campaign=verified-user&utm_content=codeseller.ru&utm_term=all-my-addons" target="_blank">на моём сайте</a> и в каталоге магазина <a href="https://codeseller.ru/author/otshelnik-fm/?tab=publics&subtab=type-products" target="_blank">CodeSeller.ru</a>
